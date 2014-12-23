@@ -1,4 +1,5 @@
 class ProjectsController < ApplicationController
+  before_action :authorize_admin!, except: [:index, :show]
   before_action :set_project, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -9,12 +10,12 @@ class ProjectsController < ApplicationController
   end
 
   def new
-  	@project = Project.new
+    @project = Project.new
   end
 
   def create
-    @project = Project.new(project_params)   
-  
+    @project = Project.new(project_params)
+
     if @project.save
       flash[:notice] = "Project has been created."
       redirect_to @project
@@ -38,14 +39,23 @@ class ProjectsController < ApplicationController
   end
 
   def destroy
-    @project.destroy   
-  
+    @project.destroy
+
     flash[:notice] = "Project has been destroyed."
-  
+
     redirect_to projects_path
   end
 
   private
+
+  def authorize_admin!
+    require_signin!
+
+    unless current_user.admin?
+      flash[:alert] = "You must be an admin to do that."
+      redirect_to root_path
+    end
+  end
 
   def set_project
     begin
